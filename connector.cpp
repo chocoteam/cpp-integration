@@ -107,7 +107,7 @@ namespace Profiling {
     sendOverSocket(node.get_node());
   }
 
-  void Connector::restart(int restart_id, const std::string& file_path) {
+  void Connector::restart(const std::string& file_path, int restart_id) {
     // std::cerr << "restarting gist, restart_id: " << restart_id << "\n";
 
     message::Node dummy_node;
