@@ -32,7 +32,6 @@ namespace Profiling {
 
     void sendOverSocket(const message::Node& msg);
 
-
   public:
 
     Connector(unsigned int port, unsigned int tid = 0);
@@ -41,7 +40,7 @@ namespace Profiling {
     void connect();
 
     // sends START_SENDING message to the Profiler with a model name
-    void restart(int restart_id, const std::string& file_path);
+    void restart(const std::string& file_path = "", int restart_id = -1);
 
     void done();
 
