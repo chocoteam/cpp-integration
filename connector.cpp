@@ -96,13 +96,6 @@ namespace Profiling {
     sendOverSocket(node);
   }
 
-  void Connector::sendNode(int sid, int pid, int alt, int kids,
-                           NodeStatus status, unsigned int thread, int restart, float domain,
-                           const std::string& nogood, const std::string& info) {
-
-    sendNode(sid, pid, alt, kids, status, "n/a", thread, restart, domain, nogood, info);
-  }
-
   void Connector::sendNode(const Profiling::Node& node) {
     sendOverSocket(node.get_node());
   }
