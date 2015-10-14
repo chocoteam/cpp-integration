@@ -14,7 +14,9 @@ std::string NumberToString ( T Number )
 
 namespace Profiling {
 
-  Node::Node(int sid, int pid, int alt, int kids, NodeStatus status) {
+  Node::Node(int sid, int pid, int alt, int kids, NodeStatus status, Connector& c) : _c(c) {
+
+    std::cout << "Node::Node(...); sid: " << sid << std::endl;
     _node.set_type(message::Node::NODE);
 
     _node.set_sid(sid);
@@ -23,6 +25,14 @@ namespace Profiling {
     _node.set_kids(kids);
     _node.set_status(static_cast<message::Node::NodeStatus>(status));
     _node.set_thread_id(-1); /// -1 is default for thread id
+  }
+
+  Node::Node(Node&& node) : _c(node._c) {
+    std::cout << "Node::Node(Node&&); sid: " << _node.sid() << std::endl;
+  }
+
+  Node::~Node() {
+
   }
 
 }
@@ -96,6 +106,10 @@ namespace Profiling {
     sendOverSocket(node);
   }
 
+  Node Connector::createNode(int sid, int pid, int alt, int kids, NodeStatus status) {
+    return Node(sid, pid, alt, kids, status, *this);
+  }
+
   void Connector::sendNode(const Profiling::Node& node) {
     sendOverSocket(node.get_node());
   }
@@ -138,3 +152,10 @@ namespace Profiling {
   }
 
 }
+
+
+namespace Profiling {
+
+  void Node::send() {
+    this->_c.sendNode(*this);
+  }

@@ -1,3 +1,5 @@
+/// v1.0
+
 #ifndef CONNECTOR
 #define CONNECTOR
 
@@ -61,6 +63,8 @@ namespace Profiling {
 
     void sendNode(const Profiling::Node& node);
 
+    Node createNode(int sid, int pid, int alt, int kids, NodeStatus status);
+
   };
 
   class Node {
@@ -68,16 +72,26 @@ namespace Profiling {
   private:
 
     message::Node _node;
+    Connector& _c;
 
     const message::Node& get_node() const {
       return _node;
     }
 
+    Node(const Node& node); /// no copying allowed
+
+
   public:
 
     friend class Connector;
 
-    Node(int sid, int pid, int alt, int kids, NodeStatus status);
+    Node(int sid, int pid, int alt, int kids, NodeStatus status, Connector& c);
+
+    ~Node();
+
+    Node(Node&& node);
+
+    void send();
 
     inline Node& set_label(const std::string& label) {
       _node.set_label(label);
