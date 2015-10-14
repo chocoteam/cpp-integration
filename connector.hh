@@ -89,8 +89,6 @@ namespace Profiling {
 
     ~Node();
 
-    Node(Node&& node);
-
     void send();
 
     inline Node& set_label(const std::string& label) {
