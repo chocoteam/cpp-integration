@@ -24,13 +24,29 @@ c.restart("example", 1);
 
 #### 3. Send data every time the solver branches/fails/finds a solution
 
-##### The old way
-
 ```c++
-c.sendNode(node_id, parent_id, alt, kids, status, label);
+/// Create a node on a stack with mandatory fields
+Node node = c.createNode(node_id, parent_id, alt, kids, status);
 ```
 
-where
+```c++
+// Specify optional fields (whichever available)
+node.set_label("b");
+```
+
+```c++
+// Send the node
+c.sendNode(node);
+```
+
+Or all in one line:
+
+```c++
+c.createNode(node_id, parent_id, alt, kids, status).set_label("b").send();
+```
+
+
+The parameters are:
 
 field   | type | description
 ------  | ---- | -----------
@@ -40,23 +56,6 @@ alt       | int | which of its siblings the node is (0 for the left-most)
 kids      | int | number of children
 status    | Profiling::NodeStatus | determines the node's type (solution, failure, branching etc)
 label     | std::string | some text-based information to go along with the node (ie branching decision
-
-##### An alternative way
-
-```c++
-// Create a node on a stack with mandatory fields
-Node node(2, 0, 1, 0, NodeStatus::SOLVED);
-```
-
-```c++
-// Separately specify optional fields (whichever available)
-node.set_label("b");
-```
-
-```c++
-// Send the node
-c.sendNode(node);
-```
 
 #### 4. Finish the tree and release the socket
 
