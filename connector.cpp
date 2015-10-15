@@ -26,6 +26,10 @@ namespace Profiling {
     _node.set_thread_id(-1); /// -1 is default for thread id
   }
 
+  void Node::send() {
+    this->_c.sendNode(*this);
+  }
+
   Node::~Node() {
 
   }
@@ -147,10 +151,3 @@ namespace Profiling {
   }
 
 }
-
-
-namespace Profiling {
-
-  void Node::send() {
-    this->_c.sendNode(*this);
-  }
