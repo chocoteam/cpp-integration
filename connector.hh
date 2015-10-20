@@ -121,6 +121,11 @@ namespace Profiling {
       return *this;
     }
 
+    inline Node& set_solution(const std::string& solution) {
+      _node.set_solution(solution);
+      return *this;
+    }
+
   };
 
 }
