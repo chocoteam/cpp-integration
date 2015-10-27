@@ -120,7 +120,7 @@ namespace Profiling {
     dummy_node.set_type(message::Node::START);
 
     /// should it be restart_id instead?
-    dummy_node.set_restart_id(-1);
+    dummy_node.set_restart_id(restart_id);
 
     /// extract fzn file name
     std::string name(file_path);
