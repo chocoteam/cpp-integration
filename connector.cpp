@@ -39,7 +39,9 @@ namespace Profiling {
 namespace Profiling {
 
   Connector::Connector(unsigned int port, unsigned int tid)
-  : port(port), _thread_id(tid), context(1), socket(context, ZMQ_PUSH) {
+  : port(port), _thread_id(tid), socket(AF_SP, NN_PUSH) {
+      int linger = -1;
+      nn_setsockopt(nanosocket, NN_SOL_SOCKET, NN_LINGER, &linger, sizeof(linger));
     // begin_time = system_clock::now();
   }
 
@@ -47,25 +49,23 @@ namespace Profiling {
     std::string msg_str;
     msg.SerializeToString(&msg_str);
 
-    zmq::message_t request(msg_str.size());
-    memcpy((void*)request.data(), msg_str.c_str(), msg_str.size());
+    void *buf = new char[msg_str.size()];
+    memcpy(buf, msg_str.c_str(), msg_str.size());
 
     // Sometimes sending will fail with EINTR.  In this case, we try to
     // send the message again.
     while (true) {
       int failed_attempts = 0;
       try {
-        bool sentOK = socket.send(request);
-        // If sentOK is false, there was an EAGAIN.  We handle this the
-        // same as EINTR.
-        if (!sentOK) {
+        int bytes = socket.send(request);
+        if (bytes == -1) {
           failed_attempts++;
           if (failed_attempts > 10) abort();
           continue;
         }
         // Success: stop the loop.
         break;
-      } catch (zmq::error_t &e) {
+      } catch (nn::exception &e) {
         failed_attempts++;
         if (failed_attempts > 10) abort();
         if (e.num() == EINTR) {

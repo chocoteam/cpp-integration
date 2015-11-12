@@ -4,7 +4,7 @@
 #define CONNECTOR
 
 #include "message.pb.hh"
-#include "zmq.hpp"
+#include "nn.hpp"
 
 namespace message {
   class Node;
@@ -29,8 +29,7 @@ namespace Profiling {
     const unsigned int port;
     unsigned int _thread_id;
 
-    zmq::context_t context;
-    zmq::socket_t socket;
+    nn::socket_t socket;
 
     void sendOverSocket(const message::Node& msg);
 
