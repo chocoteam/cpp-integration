@@ -39,9 +39,9 @@ namespace Profiling {
 namespace Profiling {
 
   Connector::Connector(unsigned int port, unsigned int tid)
-  : port(port), _thread_id(tid), socket(AF_SP, NN_PUSH) {
+    : port(port), _thread_id(tid), nanosocket(AF_SP, NN_PUSH) {
       int linger = -1;
-      nn_setsockopt(nanosocket, NN_SOL_SOCKET, NN_LINGER, &linger, sizeof(linger));
+    nanosocket.setsockopt(NN_SOL_SOCKET, NN_LINGER, &linger, sizeof(linger));
     // begin_time = system_clock::now();
   }
 
@@ -57,7 +57,7 @@ namespace Profiling {
     while (true) {
       int failed_attempts = 0;
       try {
-        int bytes = socket.send(request);
+        int bytes = nanosocket.send(buf, msg_str.size(), 0);
         if (bytes == -1) {
           failed_attempts++;
           if (failed_attempts > 10) abort();
@@ -136,7 +136,7 @@ namespace Profiling {
 
   void Connector::connect() {
     std::string address = "tcp://localhost:" + NumberToString(port);
-    socket.connect(address.c_str());
+    endpoint = nanosocket.connect(address.c_str());
     std::cout << "sending over port: " << port << "\n";
   }
 
@@ -147,7 +147,7 @@ namespace Profiling {
   }
 
   void Connector::disconnect() {
-    socket.close();
+    nanosocket.shutdown(endpoint);
   }
 
 }

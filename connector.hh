@@ -5,6 +5,8 @@
 
 #include "message.pb.hh"
 #include "nn.hpp"
+#include <nanomsg/pipeline.h>
+#include <nanomsg/tcp.h>
 
 namespace message {
   class Node;
@@ -29,7 +31,8 @@ namespace Profiling {
     const unsigned int port;
     unsigned int _thread_id;
 
-    nn::socket_t socket;
+    nn::socket nanosocket;
+    int endpoint;
 
     void sendOverSocket(const message::Node& msg);
 
