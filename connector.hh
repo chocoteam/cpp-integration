@@ -4,9 +4,13 @@
 #define CONNECTOR
 
 #include "message.pb.hh"
-#include "nn.hpp"
-#include <nanomsg/pipeline.h>
-#include <nanomsg/tcp.h>
+// #include "nn.hpp"
+// #include <nanomsg/pipeline.h>
+// #include <nanomsg/tcp.h>
+
+#include <asio.hpp>
+
+using namespace asio::ip;
 
 namespace message {
   class Node;
@@ -31,8 +35,12 @@ namespace Profiling {
     const unsigned int port;
     unsigned int _thread_id;
 
-    nn::socket nanosocket;
-    int endpoint;
+    // nn::socket nanosocket;
+      // int socketfd;
+      asio::io_service io_service;
+      tcp::socket socket;
+      bool connected;
+    // int endpoint;
 
     void sendOverSocket(const message::Node& msg);
 
@@ -125,6 +133,11 @@ namespace Profiling {
 
     inline Node& set_solution(const std::string& solution) {
       _node.set_solution(solution);
+      return *this;
+    }
+
+    inline Node& set_time(unsigned long long time) {
+      _node.set_time(time);
       return *this;
     }
 
