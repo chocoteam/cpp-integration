@@ -40,81 +40,41 @@ namespace Profiling {
 
   Connector::Connector(unsigned int port, unsigned int tid)
     : port(port), _thread_id(tid),
-      socket(io_service)
-  {
-      int linger = -1;
-      connected = false;
-    // nanosocket.setsockopt(NN_SOL_SOCKET, NN_LINGER, &linger, sizeof(linger));
-    // begin_time = system_clock::now();
-  }
+      socket(io_service),
+      connected(false)
+  { }
 
   void Connector::sendOverSocket(const message::Node &msg) {
-      bool printNodes = true;
-      if (printNodes) {
-          std::cerr << msg.type() << ","
-                    << msg.sid() << ","
-                    << msg.restart_id() << ","
-                    << msg.pid() << ","
-                    << msg.alt() << ","
-                    << msg.kids() << ","
-                    << msg.status() << ","
-                    << msg.time() << ","
-                    << msg.label() << ","
-                    << msg.nogood() << ","
-                    << msg.info() << "\n";
-      }
-      if (!connected) return;
+    bool printNodes = true;
+    if (printNodes) {
+        std::cerr << msg.type() << ","
+                  << msg.sid() << ","
+                  << msg.restart_id() << ","
+                  << msg.pid() << ","
+                  << msg.alt() << ","
+                  << msg.kids() << ","
+                  << msg.status() << ","
+                  << msg.time() << ","
+                  << msg.label() << ","
+                  << msg.nogood() << ","
+                  << msg.info() << "\n";
+    }
+    if (!connected) return;
     std::string msg_str;
     msg.SerializeToString(&msg_str);
 
     void *buf = new char[msg_str.size()];
     memcpy(buf, msg_str.c_str(), msg_str.size());
 
-    // Sometimes sending will fail with EINTR.  In this case, we try to
-    // send the message again.
-    while (true) {
-      int failed_attempts = 0;
-      // try {
-          // int bytes = write(socket, buf, msg_str.size());
-
-      uint32_t bufSize = msg_str.size();
-      // std::cout << "sending message size: " << bufSize << "\n";
-      socket.write_some(asio::buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
-
-//      usleep(1000000);
-
-      // std::cout << "sending message\n";
-      socket.write_some(asio::buffer(buf, bufSize));
-      
-//      usleep(1000000);
-        // int bytes = nanosocket.send(buf, msg_str.size(), 0);
-        // if (bytes == -1) {
-        //   failed_attempts++;
-        //   if (failed_attempts > 10) abort();
-        //   continue;
-        // }
-        // if (bytes < msg_str.size())
-        //     abort();
-        // Success: stop the loop.
-        break;
-      // } catch (nn::exception &e) {
-      //   failed_attempts++;
-      //   if (failed_attempts > 10) abort();
-      //   if (e.num() == EINTR) {
-      //     continue;
-      //   }
-      //   // If it was something other than EINTR, rethrow the exception.
-      //   throw e;
-      // }
-    }
+    uint32_t bufSize = msg_str.size();
+    socket.write_some(asio::buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
+    socket.write_some(asio::buffer(buf, bufSize));
   }
 
   void Connector::sendNode(int sid, int pid, int alt, int kids,
                            NodeStatus status, const char* label, unsigned int thread, int restart,
                            float domain, const std::string& nogood, const std::string& info) {
-      if (!connected) return;
-    // current_time = system_clock::now();
-    // unsigned long long timestamp = static_cast<long long>(duration_cast<microseconds>(current_time - begin_time).count());
+    if (!connected) return;
 
     message::Node node;
 
@@ -167,14 +127,9 @@ namespace Profiling {
   }
 
   void Connector::connect() {
-    // std::string address = "tcp://localhost:" + NumberToString(port);
-    // endpoint = nanosocket.connect(address.c_str());
-    // std::cout << "sending over port: " << port << "\n";
-      // socketfd = socket(AF_INET, SOCK_STREAM, 6);
-      // connect(socketfd,
       try {
           tcp::resolver resolver(io_service);
-          tcp::endpoint endpoint(address::from_string("127.0.0.1"), 1234);
+          tcp::endpoint endpoint(address::from_string("127.0.0.1"), 6565);
           socket.connect(endpoint);
           connected = true;
       } catch (asio::system_error& e) {
@@ -190,7 +145,6 @@ namespace Profiling {
   }
 
   void Connector::disconnect() {
-    // nanosocket.shutdown(endpoint);
   }
 
 }
