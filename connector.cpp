@@ -45,7 +45,7 @@ namespace Profiling {
   { }
 
   void Connector::sendOverSocket(const message::Node &msg) {
-    bool printNodes = true;
+    bool printNodes = false;
     if (printNodes) {
         std::cerr << msg.type() << ","
                   << msg.sid() << ","
@@ -69,6 +69,13 @@ namespace Profiling {
     uint32_t bufSize = msg_str.size();
     socket.write_some(asio::buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
     socket.write_some(asio::buffer(buf, bufSize));
+  }
+
+  void Connector::sendRawMsg(const char* buf, int len) {
+      uint32_t l = len;
+      char* p = reinterpret_cast<char*>(&l);
+      socket.write_some(asio::buffer(p, sizeof l));
+      socket.write_some(asio::buffer(buf, len));
   }
 
   void Connector::sendNode(int sid, int pid, int alt, int kids,

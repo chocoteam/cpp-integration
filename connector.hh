@@ -45,6 +45,7 @@ namespace Profiling {
     void sendOverSocket(const message::Node& msg);
 
   public:
+    void sendRawMsg(const char* buf, int len);
 
     Connector(unsigned int port, unsigned int tid = 0);
 
@@ -82,7 +83,6 @@ namespace Profiling {
   private:
 
     message::Node _node;
-    Connector& _c;
 
     const message::Node& get_node() const {
       return _node;
@@ -90,6 +90,7 @@ namespace Profiling {
 
     Node(const Node& node); /// no copying allowed
 
+    Connector& _c;
 
   public:
 
