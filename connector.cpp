@@ -67,8 +67,8 @@ namespace Profiling {
     memcpy(buf, msg_str.c_str(), msg_str.size());
 
     uint32_t bufSize = msg_str.size();
-    socket.write_some(asio::buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
-    socket.write_some(asio::buffer(buf, bufSize));
+    socket.write_some(buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
+    socket.write_some(buffer(buf, bufSize));
   }
 
   void Connector::sendRawMsg(const char* buf, int len) {
@@ -139,7 +139,7 @@ namespace Profiling {
           tcp::endpoint endpoint(address::from_string("127.0.0.1"), 6565);
           socket.connect(endpoint);
           _connected = true;
-      } catch (asio::system_error& e) {
+      } catch (boost::system::system_error& e) {
           std::cerr << "couldn't connect to profiler; running solo\n";
           _connected = false;
       }

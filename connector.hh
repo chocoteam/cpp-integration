@@ -8,9 +8,10 @@
 // #include <nanomsg/pipeline.h>
 // #include <nanomsg/tcp.h>
 
-#include <asio.hpp>
+#include <boost/asio.hpp>
 
-using namespace asio::ip;
+using namespace boost::asio;
+using namespace boost::asio::ip;
 
 namespace message {
   class Node;
@@ -37,7 +38,7 @@ namespace Profiling {
 
     // nn::socket nanosocket;
       // int socketfd;
-      asio::io_service io_service;
+      io_service io_service;
       tcp::socket socket;
       bool _connected;
     // int endpoint;
