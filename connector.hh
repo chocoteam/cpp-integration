@@ -39,7 +39,7 @@ namespace Profiling {
       // int socketfd;
       asio::io_service io_service;
       tcp::socket socket;
-      bool connected;
+      bool _connected;
     // int endpoint;
 
     void sendOverSocket(const message::Node& msg);
@@ -48,6 +48,8 @@ namespace Profiling {
     void sendRawMsg(const char* buf, int len);
 
     Connector(unsigned int port, unsigned int tid = 0);
+
+      bool connected() { return _connected; }
 
     /// connect to a socket via port specified in the construction (6565 by default)
     void connect();

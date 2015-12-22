@@ -41,7 +41,7 @@ namespace Profiling {
   Connector::Connector(unsigned int port, unsigned int tid)
     : port(port), _thread_id(tid),
       socket(io_service),
-      connected(false)
+      _connected(false)
   { }
 
   void Connector::sendOverSocket(const message::Node &msg) {
@@ -59,7 +59,7 @@ namespace Profiling {
                   << msg.nogood() << ","
                   << msg.info() << "\n";
     }
-    if (!connected) return;
+    if (!_connected) return;
     std::string msg_str;
     msg.SerializeToString(&msg_str);
 
@@ -81,7 +81,7 @@ namespace Profiling {
   void Connector::sendNode(int sid, int pid, int alt, int kids,
                            NodeStatus status, const char* label, unsigned int thread, int restart,
                            float domain, const std::string& nogood, const std::string& info) {
-    if (!connected) return;
+    if (!_connected) return;
 
     message::Node node;
 
@@ -138,10 +138,10 @@ namespace Profiling {
           tcp::resolver resolver(io_service);
           tcp::endpoint endpoint(address::from_string("127.0.0.1"), 6565);
           socket.connect(endpoint);
-          connected = true;
+          _connected = true;
       } catch (asio::system_error& e) {
           std::cerr << "couldn't connect to profiler; running solo\n";
-          connected = false;
+          _connected = false;
       }
   }
 
