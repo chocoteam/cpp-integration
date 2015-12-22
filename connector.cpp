@@ -74,8 +74,8 @@ namespace Profiling {
   void Connector::sendRawMsg(const char* buf, int len) {
       uint32_t l = len;
       char* p = reinterpret_cast<char*>(&l);
-      socket.write_some(asio::buffer(p, sizeof l));
-      socket.write_some(asio::buffer(buf, len));
+      socket.write_some(buffer(p, sizeof l));
+      socket.write_some(buffer(buf, len));
   }
 
   void Connector::sendNode(int sid, int pid, int alt, int kids,
