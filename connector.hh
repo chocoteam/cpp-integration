@@ -38,7 +38,7 @@ namespace Profiling {
 
     // nn::socket nanosocket;
       // int socketfd;
-      io_service io_service;
+      io_service service;
       tcp::socket socket;
       bool _connected;
     // int endpoint;

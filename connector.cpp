@@ -40,7 +40,7 @@ namespace Profiling {
 
   Connector::Connector(unsigned int port, unsigned int tid)
     : port(port), _thread_id(tid),
-      socket(io_service),
+      socket(service),
       _connected(false)
   { }
 
@@ -135,7 +135,7 @@ namespace Profiling {
 
   void Connector::connect() {
       try {
-          tcp::resolver resolver(io_service);
+          tcp::resolver resolver(service);
           tcp::endpoint endpoint(address::from_string("127.0.0.1"), 6565);
           socket.connect(endpoint);
           _connected = true;
