@@ -45,20 +45,6 @@ namespace Profiling {
   { }
 
   void Connector::sendOverSocket(const message::Node &msg) {
-    bool printNodes = false;
-    if (printNodes) {
-        std::cerr << msg.type() << ","
-                  << msg.sid() << ","
-                  << msg.restart_id() << ","
-                  << msg.pid() << ","
-                  << msg.alt() << ","
-                  << msg.kids() << ","
-                  << msg.status() << ","
-                  << msg.time() << ","
-                  << msg.label() << ","
-                  << msg.nogood() << ","
-                  << msg.info() << "\n";
-    }
     if (!_connected) return;
     std::string msg_str;
     msg.SerializeToString(&msg_str);

@@ -145,8 +145,20 @@ namespace Profiling {
       return *this;
     }
 
+    void print(std::ostream& out) {
+      out << _node.type() << ","
+          << _node.sid() << ","
+          << _node.restart_id() << ","
+          << _node.pid() << ","
+          << _node.alt() << ","
+          << _node.kids() << ","
+          << _node.status() << ","
+          << _node.time() << ","
+          << _node.label() << ","
+          << _node.nogood() << ","
+          << _node.info() << "\n";
+    }
   };
-
 }
 
 #endif
