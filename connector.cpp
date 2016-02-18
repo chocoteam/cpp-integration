@@ -4,6 +4,18 @@
 #include <ctime>
 #include <sstream>
 
+#include <cstdio>
+#include <cstring>
+
+#include <unistd.h>
+#include <errno.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+#include <arpa/inet.h>
+
 template <typename T>
 std::string NumberToString ( T Number )
 {
@@ -38,30 +50,58 @@ namespace Profiling {
 
 namespace Profiling {
 
+  // get sockaddr, IPv4 or IPv6:
+  void *get_in_addr(struct sockaddr *sa)
+  {
+    if (sa->sa_family == AF_INET) {
+      return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+    
+    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+  }
+
   Connector::Connector(unsigned int port, unsigned int tid)
     : port(port), _thread_id(tid),
-      socket(service),
+      // socket(service),
       _connected(false)
-  { }
+  {}
 
+  // From http://beej.us/guide/bgnet/output/html/multipage/advanced.html#sendall
+  int sendall(int s, const char *buf, int *len)
+  {
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+        
+    while(total < *len) {
+      n = send(s, buf+total, bytesleft, 0);
+      if (n == -1) { break; }
+      total += n;
+      bytesleft -= n;
+    }
+        
+    *len = total; // return number actually sent here
+        
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+  } 
+    
   void Connector::sendOverSocket(const message::Node &msg) {
     if (!_connected) return;
     std::string msg_str;
     msg.SerializeToString(&msg_str);
 
-    void *buf = new char[msg_str.size()];
+    char *buf = new char[msg_str.size()];
     memcpy(buf, msg_str.c_str(), msg_str.size());
 
-    uint32_t bufSize = msg_str.size();
-    socket.write_some(buffer(reinterpret_cast<void*>(&bufSize), sizeof(bufSize)));
-    socket.write_some(buffer(buf, bufSize));
+    sendRawMsg(buf, msg_str.size());
   }
 
   void Connector::sendRawMsg(const char* buf, int len) {
-      uint32_t l = len;
-      char* p = reinterpret_cast<char*>(&l);
-      socket.write_some(buffer(p, sizeof l));
-      socket.write_some(buffer(buf, len));
+    uint32_t bufSize = len;
+    int bufSizeLen = sizeof(uint32_t);
+    sendall(sockfd, reinterpret_cast<char*>(&bufSize), &bufSizeLen);
+    int bufSizeInt = bufSize;
+    sendall(sockfd, buf, &bufSizeInt);
   }
 
   void Connector::sendNode(int sid, int pid, int alt, int kids,
@@ -120,15 +160,53 @@ namespace Profiling {
   }
 
   void Connector::connect() {
-      try {
-          tcp::resolver resolver(service);
-          tcp::endpoint endpoint(address::from_string("127.0.0.1"), 6565);
-          socket.connect(endpoint);
-          _connected = true;
-      } catch (boost::system::system_error& e) {
-          std::cerr << "couldn't connect to profiler; running solo\n";
-          _connected = false;
+    struct addrinfo hints, *servinfo, *p;
+    int rv;
+    char s[INET6_ADDRSTRLEN];
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if ((rv = getaddrinfo("localhost", "6565", &hints, &servinfo)) != 0) {
+      std::cerr << "getaddrinfo: " << gai_strerror(rv) << "\n";
+      goto giveup;
+    }
+
+    // loop through all the results and connect to the first we can
+    for(p = servinfo; p != NULL; p = p->ai_next) {
+      if ((sockfd = socket(p->ai_family, p->ai_socktype,
+                           p->ai_protocol)) == -1) {
+        perror("client: socket");
+        continue;
       }
+      
+      if (::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+        close(sockfd);
+        perror("client: connect");
+        continue;
+      }
+     
+      break;
+    }
+
+    if (p == NULL) {
+      fprintf(stderr, "client: failed to connect\n");
+      goto giveup;
+    }
+    
+    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+            s, sizeof s);
+    printf("client: connecting to %s\n", s);
+
+    freeaddrinfo(servinfo); // all done with this structure
+
+    _connected = true;
+    return;
+  giveup:
+    std::cerr << "couldn't connect to profiler; running solo\n";
+    _connected = false;
+    return;
   }
 
   void Connector::done() {
