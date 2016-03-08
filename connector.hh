@@ -13,6 +13,8 @@
 // using namespace boost::asio;
 // using namespace boost::asio::ip;
 
+#include <iostream>
+
 namespace message {
   class Node;
 }
