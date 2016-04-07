@@ -76,6 +76,7 @@ namespace Profiling {
                   int restart = -1,
                   float domain = -1,
                   const std::string& nogood = "",
+                  int nogood_bld = -1,
                   const std::string& info = "");
 
     void sendNode(const Profiling::Node& node);
@@ -133,6 +134,11 @@ namespace Profiling {
       return *this;
     }
 
+      inline Node& set_nogood_bld(int nogood_bld) {
+      _node.set_nogood_bld(nogood_bld);
+      return *this;
+    }
+
     inline Node& set_info(const std::string& nogood) {
       _node.set_info(nogood);
       return *this;
@@ -159,6 +165,7 @@ namespace Profiling {
           << _node.time() << ","
           << _node.label() << ","
           << _node.nogood() << ","
+          << _node.nogood_bld() << ","
           << _node.info() << "\n";
     }
   };

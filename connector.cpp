@@ -106,7 +106,7 @@ namespace Profiling {
 
   void Connector::sendNode(int sid, int pid, int alt, int kids,
                            NodeStatus status, const char* label, unsigned int thread, int restart,
-                           float domain, const std::string& nogood, const std::string& info) {
+                           float domain, const std::string& nogood, int nogood_bld, const std::string& info) {
     if (!_connected) return;
 
     message::Node node;
@@ -125,6 +125,7 @@ namespace Profiling {
     node.set_domain_size(domain);
     // node.set_solution(solution);
     node.set_nogood(nogood);
+    node.set_nogood_bld(nogood_bld);
     node.set_info(info);
 
     sendOverSocket(node);
