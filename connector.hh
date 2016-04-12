@@ -77,6 +77,7 @@ namespace Profiling {
                   float domain = -1,
                   const std::string& nogood = "",
                   int nogood_bld = -1,
+                  bool uses_assumptions = false,
                   const std::string& info = "");
 
     void sendNode(const Profiling::Node& node);
@@ -134,8 +135,13 @@ namespace Profiling {
       return *this;
     }
 
-      inline Node& set_nogood_bld(int nogood_bld) {
+    inline Node& set_nogood_bld(int nogood_bld) {
       _node.set_nogood_bld(nogood_bld);
+      return *this;
+    }
+
+    inline Node& set_uses_assumptions(bool uses_assumptions) {
+      _node.set_uses_assumptions(uses_assumptions);
       return *this;
     }
 
@@ -166,6 +172,7 @@ namespace Profiling {
           << _node.label() << ","
           << _node.nogood() << ","
           << _node.nogood_bld() << ","
+          << _node.uses_assumptions() << ","
           << _node.info() << "\n";
     }
   };
