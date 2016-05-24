@@ -145,6 +145,16 @@ namespace Profiling {
       return *this;
     }
 
+    inline Node& set_backjump_distance(int backjump_distance) {
+      _node.set_backjump_distance(backjump_distance);
+      return *this;
+    }
+
+    inline Node& set_decision_level(int decision_level) {
+      _node.set_decision_level(decision_level);
+      return *this;
+    }
+
     inline Node& set_info(const std::string& nogood) {
       _node.set_info(nogood);
       return *this;
@@ -173,6 +183,8 @@ namespace Profiling {
           << _node.nogood() << ","
           << _node.nogood_bld() << ","
           << _node.uses_assumptions() << ","
+          << _node.backjump_distance() << ","
+          << _node.decision_level() << ","
           << _node.info() << "\n";
     }
   };
