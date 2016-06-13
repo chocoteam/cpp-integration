@@ -59,7 +59,7 @@ namespace Profiling {
     void connect();
 
     // sends START_SENDING message to the Profiler with a model name
-    void restart(const std::string& file_path = "", int restart_id = -1);
+    void restart(const std::string& file_path = "", int restart_id = -1, const std::string& variableList = "");
 
     void done();
 
