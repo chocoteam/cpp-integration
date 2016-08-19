@@ -1,20 +1,30 @@
 #include "connector.hh"
 #include <iostream>
-#include <unistd.h>
 #include <ctime>
 #include <sstream>
+#include <cstdint>
 
 #include <cstdio>
 #include <cstring>
 
-#include <unistd.h>
+#ifdef WIN32
+
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#pragma comment (lib, "Ws2_32.lib")
+#pragma comment (lib, "Mswsock.lib")
+#pragma comment (lib, "AdvApi32.lib")
+
+#else
+
 #include <errno.h>
 #include <netdb.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
 #include <arpa/inet.h>
+
+#endif
 
 template <typename T>
 std::string NumberToString ( T Number )
@@ -50,14 +60,13 @@ namespace Profiling {
 
 namespace Profiling {
 
-  // get sockaddr, IPv4 or IPv6:
+  // get sockaddr, IPv4 only!
   void *get_in_addr(struct sockaddr *sa)
   {
     if (sa->sa_family == AF_INET) {
       return &(((struct sockaddr_in*)sa)->sin_addr);
     }
-    
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    return NULL;
   }
 
   Connector::Connector(unsigned int port, unsigned int tid)
@@ -166,7 +175,15 @@ namespace Profiling {
   void Connector::connect() {
     struct addrinfo hints, *servinfo, *p;
     int rv;
-    char s[INET6_ADDRSTRLEN];
+
+    #ifdef WIN32
+    // Initialise Winsock.
+    WSADATA wsaData;
+    int startupResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+    if (startupResult != 0) {
+        printf("WSAStartup failed with error: %d\n", startupResult);
+    }
+    #endif
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
@@ -186,7 +203,11 @@ namespace Profiling {
       }
       
       if (::connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+	#ifdef WIN32
+	closesocket(sockfd);
+	#else
         close(sockfd);
+	#endif
         perror("client: connect");
         continue;
       }
@@ -199,9 +220,6 @@ namespace Profiling {
       goto giveup;
     }
     
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
-            s, sizeof s);
-
     freeaddrinfo(servinfo); // all done with this structure
 
     _connected = true;
