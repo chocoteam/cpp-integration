@@ -199,7 +199,7 @@ namespace Profiling {
     for(p = servinfo; p != NULL; p = p->ai_next) {
       if ((sockfd = socket(p->ai_family, p->ai_socktype,
                            p->ai_protocol)) == -1) {
-        perror("client: socket");
+        // errno is set here, but we don't examine it.
         continue;
       }
       
@@ -209,15 +209,15 @@ namespace Profiling {
 	#else
         close(sockfd);
 	#endif
-        perror("client: connect");
+        // errno is set here, but we don't examine it.
         continue;
       }
      
       break;
     }
 
+    // Connection failed; give up.
     if (p == NULL) {
-      fprintf(stderr, "client: failed to connect\n");
       goto giveup;
     }
     
@@ -226,7 +226,6 @@ namespace Profiling {
     _connected = true;
     return;
   giveup:
-    std::cerr << "couldn't connect to profiler; running solo\n";
     _connected = false;
     return;
   }
