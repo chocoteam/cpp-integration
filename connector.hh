@@ -56,7 +56,7 @@ namespace Profiling {
       bool connected() { return _connected; }
 
     /// connect to a socket via port specified in the construction (6565 by default)
-    void connect();
+    void connect(int execution_id = -1);
 
     // sends START_SENDING message to the Profiler with a model name
     void restart(const std::string& file_path = "", int restart_id = -1, const std::string& variableList = "");

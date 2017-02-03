@@ -173,7 +173,7 @@ namespace Profiling {
     sendOverSocket(dummy_node);
   }
 
-  void Connector::connect() {
+  void Connector::connect(int execution_id) {
     struct addrinfo hints, *servinfo, *p;
     int rv;
 
@@ -190,7 +190,7 @@ namespace Profiling {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if ((rv = getaddrinfo("localhost", "6565", &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo("localhost", std::to_string(port).c_str(), &hints, &servinfo)) != 0) {
       std::cerr << "getaddrinfo: " << gai_strerror(rv) << "\n";
       goto giveup;
     }
@@ -224,6 +224,14 @@ namespace Profiling {
     freeaddrinfo(servinfo); // all done with this structure
 
     _connected = true;
+
+    if(execution_id != -1) {
+      std::cerr << "% Sending CONNECT message with eid: " << execution_id << "\n";
+      message::Node eid_node;
+      eid_node.set_type(message::Node::CONNECT);
+      eid_node.set_eid(execution_id);
+      sendOverSocket(eid_node);
+    }
     return;
   giveup:
     _connected = false;
