@@ -150,7 +150,7 @@ namespace Profiling {
     sendOverSocket(node.get_node());
   }
 
-  void Connector::restart(const std::string& file_path, int restart_id, const std::string& variableList) {
+  void Connector::restart(const std::string& file_path, int restart_id, const std::string& variableList, int execution_id) {
     // std::cerr << "restarting gist, restart_id: " << restart_id << "\n";
 
     message::Node dummy_node;
@@ -167,13 +167,20 @@ namespace Profiling {
     }
 
     dummy_node.set_label(name);
-    if (variableList.size() > 0)
-      dummy_node.set_info(variableList);
+
+    std::stringstream infoStream;
+    if(execution_id != -1) {
+      infoStream << "\"execution_id\": " << execution_id;
+    }
+    if (variableList.size() > 0) {
+      infoStream << "\"variable_list\": " << variableList << ","
+    }
+    dummy_node.set_info(infoStream.str());
 
     sendOverSocket(dummy_node);
   }
 
-  void Connector::connect(int execution_id) {
+  void Connector::connect() {
     struct addrinfo hints, *servinfo, *p;
     int rv;
 
@@ -225,13 +232,6 @@ namespace Profiling {
 
     _connected = true;
 
-    if(execution_id != -1) {
-      std::cerr << "% Sending CONNECT message with eid: " << execution_id << "\n";
-      message::Node eid_node;
-      eid_node.set_type(message::Node::CONNECT);
-      eid_node.set_eid(execution_id);
-      sendOverSocket(eid_node);
-    }
     return;
   giveup:
     _connected = false;
