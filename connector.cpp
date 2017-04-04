@@ -169,12 +169,14 @@ namespace Profiling {
     dummy_node.set_label(name);
 
     std::stringstream infoStream;
+    infoStream << "{";
     if(execution_id != -1) {
       infoStream << "\"execution_id\": " << execution_id;
     }
     if (variableList.size() > 0) {
-      infoStream << "\"variable_list\": " << variableList << ","
+      infoStream << "\"variable_list\": " << variableList << ",";
     }
+    infoStream << "}";
     dummy_node.set_info(infoStream.str());
 
     sendOverSocket(dummy_node);
