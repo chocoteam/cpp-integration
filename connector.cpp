@@ -174,7 +174,8 @@ namespace Profiling {
       infoStream << "\"execution_id\": " << execution_id;
     }
     if (variableList.size() > 0) {
-      infoStream << "\"variable_list\": " << variableList << ",";
+      if(execution_id != -1) infoStream << ", ";
+      infoStream << "\"variable_list\": \"" << variableList << "\"";
     }
     infoStream << "}";
     dummy_node.set_info(infoStream.str());
