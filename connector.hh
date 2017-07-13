@@ -6,8 +6,6 @@
 #include "message.hh"
 #include <ostream>
 
-class vector;
-
 namespace Profiling {
 
   using NodeStatus = cpprofiler::NodeStatus;
