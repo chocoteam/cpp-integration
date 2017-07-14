@@ -196,7 +196,14 @@ void Connector::done() {
   sendOverSocket();
 }
 
-void Connector::disconnect() {}
+void Connector::disconnect() {
+#ifdef WIN32
+  closesocket(sockfd);
+#else
+  close(sockfd);
+#endif
+}
+
 
 std::ostream& operator<<(std::ostream& os, Node& n) {
   return os << "print node here";
