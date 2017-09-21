@@ -18,6 +18,9 @@
 #pragma comment(lib, "Mswsock.lib")
 #pragma comment(lib, "AdvApi32.lib")
 
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+
 #else
 
 #include <netdb.h>
