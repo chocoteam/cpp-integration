@@ -33,8 +33,6 @@ class Node;
 static void sendNode(Connector& c, Node& node);
 
 class Node {
-  using NodeStatus = Profiling::NodeStatus;
-
   Connector& _c;
 
   NodeUID node_;
@@ -249,7 +247,7 @@ giveup:
       info = ss.str();
     }
 
-    marshalling.makeRestart(restart_id);
+    marshalling.makeRestart(info);
     sendOverSocket();
   }
 
@@ -267,7 +265,7 @@ giveup:
 #endif
   }
 
-  void sendNode(const Profiling::Node& node) {
+  void sendNode(const Node& node) {
     if (!_connected) return;
 
     auto& msg = marshalling.makeNode(node.nodeUID(), node.parentUID(),
