@@ -4,26 +4,24 @@
 #include <vector>
 #include <string>
 #include <cassert>
+#include <cstdint>
 
-namespace Profiling {
+namespace cpprofiler {
 
-static const int32_t PROFILER_PROTOCOL_VERSION = 2;
+static const int32_t PROFILER_PROTOCOL_VERSION = 3;
 
 enum NodeStatus {
   SOLVED = 0,        ///< Node representing a solution
   FAILED = 1,        ///< Node representing failure
   BRANCH = 2,        ///< Node representing a branch
-  UNDETERMINED = 3,  ///< Node that has not been explored yet
-  STOP = 4,          ///< Node representing stop point
-  UNSTOP = 5,        ///< Node representing ignored stop point
-  SKIPPED = 6,       ///< Skipped by backjumping
-  MERGING = 7
+  SKIPPED = 3,       ///< Skipped by backjumping
 };
 
 enum class MsgType {
   NODE = 0,
   DONE = 1,
   START = 2,
+  RESTART = 3,
 };
 
 template <typename T>
@@ -42,11 +40,11 @@ public:
 // Unique identifier for a node
 struct NodeUID {
   // Node number
-  int nid;
+  int32_t nid;
   // Restart id
-  int rid;
+  int32_t rid;
   // Thread id
-  int tid;
+  int32_t tid;
 };
 
 
@@ -75,19 +73,13 @@ public:
   bool isNode(void) const { return _type == MsgType::NODE; }
   bool isDone(void) const { return _type == MsgType::DONE; }
   bool isStart(void) const { return _type == MsgType::START; }
+  bool isRestart(void) const { return _type == MsgType::RESTART; }
 
   NodeUID nodeUID(void) const { return _node; }
   void set_nodeUID(const NodeUID& n) { _node = n; }
 
   NodeUID parentUID(void) const { return _parent; }
   void set_parentUID(const NodeUID& p) { _parent = p; }
-
-  // required fields for node messages
-  int32_t node_id(void) const { return _node.nid; }
-  void set_node_id(int32_t id) { _node.nid = id; }
-
-  int32_t parent_id(void) const { return _parent.nid; }
-  void set_parent_id(int32_t pid) { _parent.nid = pid; }
 
   int32_t alt(void) const { return _alt; }
   void set_alt(int32_t alt) { _alt = alt; }
@@ -97,13 +89,6 @@ public:
 
   NodeStatus status(void) const { return _status; }
   void set_status(NodeStatus status) { _status = status; }
-
-  // optional fields for node messages
-  int32_t node_restart_id(void) const { return _node.rid; }
-  int32_t node_thread_id(void) const {  return _node.tid; }
-
-  int32_t parent_restart_id(void) const { return _parent.rid; }
-  int32_t parent_thread_id(void) const {  return _parent.tid; }
 
   void set_label(const std::string& label) {
     _have_label = true;
@@ -124,12 +109,6 @@ public:
     _have_version = true;
     _version = v;
   }
-
-  void set_node_restart_id(int32_t rid) { _node.rid = rid; }
-  void set_node_thread_id(int32_t tid) { _node.tid = tid; }
-
-  void set_parent_restart_id(int32_t rid) { _parent.rid = rid; }
-  void set_parent_thread_id(int32_t tid) { _parent.tid = tid; }
 
   bool has_version(void) const { return _have_version; }
   int32_t version(void) const { return _version; }
@@ -159,19 +138,12 @@ public:
 class MessageMarshalling {
 
 private:
+  /// Only optional fields are listed here, if node (no need for field id)
   enum Field {
-    ID = 0, // Not used
-    PID = 1, // Not used
-    ALT = 2,
-    KIDS = 3,
-    STATUS = 4,
-    RESTART_ID = 5, // Not used
-    THREAD_ID = 6, // Not used
-    LABEL = 7,
-    SOLUTION = 8, // Removed
-    NOGOOD = 9,
-    INFO = 10,
-    VERSION = 11
+    LABEL = 0,
+    NOGOOD = 1,
+    INFO = 2,
+    VERSION = 3
   };
 
   Message msg;
@@ -233,7 +205,6 @@ private:
 
   static std::string deserializeString(iter& it) {
     std::string result;
-    // std::cerr << "string size:\n";
     int32_t size = deserializeInt(it);
     result.reserve(static_cast<size_t>(size));
     for (int32_t i = 0; i < size; i++) {
@@ -259,13 +230,17 @@ public:
     return msg;
   }
 
-  void makeStart(int rid, const std::string& label, const std::string& info) {
+  void makeStart(const std::string& info) {
     msg.reset();
     msg.set_type(MsgType::START);
-    msg.set_version(Profiling::PROFILER_PROTOCOL_VERSION);
-    msg.set_node_restart_id(rid);
-    msg.set_label(label);
-    msg.set_info(info);
+    msg.set_version(PROFILER_PROTOCOL_VERSION);
+    msg.set_info(info); /// info containts name, has_restarts, execution id
+  }
+
+  void makeRestart(const std::string& info) {
+    msg.reset();
+    msg.set_type(MsgType::RESTART);
+    msg.set_info(info); /// info contains restart_id (-1 default)
   }
 
   void makeDone(void) {
@@ -286,13 +261,15 @@ public:
     serializeType(data, msg.type());
     if (msg.isNode()) {
       // serialize NodeId node
-      serialize(data, msg.node_id());
-      serialize(data, msg.node_restart_id());
-      serialize(data, msg.node_thread_id());
+      auto n_uid = msg.nodeUID();
+      serialize(data, n_uid.nid);
+      serialize(data, n_uid.rid);
+      serialize(data, n_uid.tid);
       // serialize NodeId parent
-      serialize(data, msg.parent_id());
-      serialize(data, msg.parent_restart_id());
-      serialize(data, msg.parent_thread_id());
+      auto p_uid = msg.parentUID();
+      serialize(data, p_uid.nid);
+      serialize(data, p_uid.rid);
+      serialize(data, p_uid.tid);
       // Other Data
       serialize(data, msg.alt());
       serialize(data, msg.kids());
@@ -322,13 +299,17 @@ public:
     char *end = data + size;
     msg.set_type(deserializeMsgType(data));
     if (msg.isNode()) {
-      msg.set_node_id(deserializeInt(data));
-      msg.set_node_restart_id(deserializeInt(data));
-      msg.set_node_thread_id(deserializeInt(data));
+      int32_t nid = deserializeInt(data);
+      int32_t rid = deserializeInt(data);
+      int32_t tid = deserializeInt(data);
 
-      msg.set_parent_id(deserializeInt(data));
-      msg.set_parent_restart_id(deserializeInt(data));
-      msg.set_parent_thread_id(deserializeInt(data));
+      msg.set_nodeUID({nid, rid, tid});
+
+      nid = deserializeInt(data);
+      rid = deserializeInt(data);
+      tid = deserializeInt(data);
+
+      msg.set_parentUID({nid, rid, tid});
 
       msg.set_alt(deserializeInt(data));
       msg.set_kids(deserializeInt(data));

@@ -1,5 +1,3 @@
-/// v1.0
-
 #ifndef CONNECTOR
 #define CONNECTOR
 
@@ -28,9 +26,7 @@ typedef SSIZE_T ssize_t;
 
 #endif
 
-namespace Profiling {
-using std::vector;
-using Profiling::NodeUID;
+namespace cpprofiler {
 
 class Connector;
 class Node;
@@ -134,7 +130,7 @@ private:
   void sendOverSocket() {
     if (!_connected) return;
 
-    vector<char> buf = marshalling.serialize();
+    std::vector<char> buf = marshalling.serialize();
 
     sendRawMsg(buf);
   }
@@ -214,14 +210,14 @@ giveup:
   }
 
   // sends START_SENDING message to the Profiler with a model name
-  void restart(const std::string& file_path = "", int restart_id = -1,
-               int execution_id = -1) {
+  void start(const std::string& file_path = "",
+               int execution_id = -1, bool has_restarts = false) {
     /// extract fzn file name
-    std::string label(file_path);
+    std::string base_name(file_path);
     {
-      size_t pos = label.find_last_of('/');
+      size_t pos = base_name.find_last_of('/');
       if (pos != static_cast<size_t>(-1)) {
-        label = label.substr(pos + 1, label.length() - pos - 1);
+        base_name = base_name.substr(pos + 1, base_name.length() - pos - 1);
       }
     }
 
@@ -229,14 +225,31 @@ giveup:
     {
       std::stringstream ss;
       ss << "{";
+      ss << "\"has_restarts\": " << (has_restarts ? "true" : "false")  << "\n";
+      ss << ",\"name\": " << base_name << "\n";
       if (execution_id != -1) {
-        ss << "\"execution_id\": " << execution_id;
+        ss << ",\"execution_id\": " << execution_id;
       }
       ss << "}";
       info = ss.str();
     }
 
-    marshalling.makeStart(restart_id, label, info);
+    marshalling.makeStart(info);
+    sendOverSocket();
+  }
+
+  void restart(int restart_id = -1) {
+
+    std::string info{""};
+    {
+      std::stringstream ss;
+      ss << "{";
+      ss << "\"restart_id\": " << restart_id << "\n";
+      ss << "}";
+      info = ss.str();
+    }
+
+    marshalling.makeRestart(restart_id);
     sendOverSocket();
   }
 
