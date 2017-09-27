@@ -224,7 +224,7 @@ giveup:
       std::stringstream ss;
       ss << "{";
       ss << "\"has_restarts\": " << (has_restarts ? "true" : "false")  << "\n";
-      ss << ",\"name\": " << base_name << "\n";
+      ss << ",\"name\": " << "\"" << base_name << "\"" << "\n";
       if (execution_id != -1) {
         ss << ",\"execution_id\": " << execution_id;
       }
