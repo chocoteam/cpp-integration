@@ -24,19 +24,6 @@ enum class MsgType {
   RESTART = 3,
 };
 
-template <typename T>
-class Option {
-  T value_;
-  bool present{false};
-
-public:
-  bool valid() const { return present; }
-  void set(const T& t) { present = true; value_ = t; }
-  void unset() { present = false; }
-  const T& value() const { assert(present); return value_; }
-  T& value() { assert(present); return value_; }
-};
-
 // Unique identifier for a node
 struct NodeUID {
   // Node number

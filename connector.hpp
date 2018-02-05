@@ -28,6 +28,19 @@ typedef SSIZE_T ssize_t;
 
 namespace cpprofiler {
 
+template <typename T>
+class Option {
+  T value_;
+  bool present{false};
+
+public:
+  bool valid() const { return present; }
+  void set(const T& t) { present = true; value_ = t; }
+  void unset() { present = false; }
+  const T& value() const { assert(present); return value_; }
+  T& value() { assert(present); return value_; }
+};
+
 class Connector;
 class Node;
 static void sendNode(Connector& c, Node& node);
