@@ -1,8 +1,18 @@
+package cpp;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.List;
 
+/**
+ * This class is a Java representation of
+ * the <a href="https://github.com/MiniZinc/cpp-integration">C++ Connector</a> class
+ * to communicate with cp-profiler, now part of MiniZincIDE.
+ * Please refer to the README.md file of the original project for more information.
+ * The Java code is a direct translation of the C++ code, so adapting it to Java
+ * must be quite straightforward.
+ *
+ */
 public class Connector {
 
     public static class Option<T> {
@@ -90,7 +100,6 @@ public class Connector {
         }
 
         public void send() throws IOException {
-            System.out.printf("Sending node %d\n", node);
             Connector.sendNode(connector, this);
         }
     }
