@@ -1,17 +1,17 @@
 
 #### 1. Create a connector instance
 
-```c++
-unsigned int port = 6565;
+```java
+int port = 6565;
 ```
 
-```c++
-Connector c(port);
+```java
+Connector c = new Connector(port);
 ```
 
 #### 2. Establish a connection and start a new search tree
 
-```c++
+```java
 /// Establishes a socket connection using the port specified above
 c.connect();
 
@@ -24,24 +24,24 @@ c.restart("example", 1);
 
 #### 3. Send data every time the solver branches/fails/finds a solution
 
-```c++
+```java
 /// Create a node on a stack with mandatory fields
 Node node = c.createNode(node_id, parent_id, alt, kids, status);
 ```
 
-```c++
+```java
 // Specify optional fields (whichever available)
 node.set_label("b");
 ```
 
-```c++
+```java
 // Send the node
 c.sendNode(node);
 ```
 
 Or all in one line:
 
-```c++
+```java
 c.createNode(node_id, parent_id, alt, kids, status).set_label("b").send();
 ```
 
@@ -59,7 +59,7 @@ label     | std::string | some text-based information to go along with the node 
 
 #### 4. Finish the tree and release the socket
 
-```c++
+```java
 c.done();
 c.disconnect();
 ```
